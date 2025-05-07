@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Memorization Trainer — NEUROLAB</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    #rateControl {
+      margin: 15px 0;
+    }
+    #textOutput span.verb { color: red; font-weight: bold; }
+    #textOutput span.noun { color: lime; }
+    #textOutput span.adjective { color: deepskyblue; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 Memorization Trainer</h1>
+    <textarea id="textInput" placeholder="Paste text to memorize..." rows="5"></textarea><br>
+
+    <label for="rateSlider">Voice speed: </label>
+    <input type="range" id="rateSlider" min="0.5" max="2" step="0.1" value="1">
+    <span id="rateValue">1x</span>
+
+    <div>
+      <button onclick="analyzeAndRead()">Analyze & Read</button>
+      <button onclick="splitAndPractice()">Split & Practice</button>
+    </div>
+
+    <div id="textOutput"></div>
+    <div id="splitOutput"></div>
+
+    <br><a href="../index.html" style="color:#00ffe7;">← Back to NEUROLAB</a>
+  </div>
+
+  <script>
+    const rateSlider = document.getElementById('rateSlider');
+    const rateValue = document.getElementById('rateValue');
+    rateSlider.oninput = () => rateValue.textContent = rateSlider.value + 'x';
+
+    function analyzeAndRead() {
+      const text = document.getElementById('textInput').value;
+      const rate = parseFloat(rateSlider.value);
+      document.getElementById('splitOutput').innerHTML = '';
+      document.getElementById('textOutput').innerHTML = highlight(text);
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en';
+      utterance.rate = rate;
+      speechSynthesis.speak(utterance);
+    }
+
+    function splitAndPractice() {
+      const text = document.getElementById('textInput').value;
+      const rate = parseFloat(rateSlider.value);
+      const sentences = text.split(/(?<=[.!?])\s+/);
+      const splitOutput = document.getElementById('splitOutput');
+      document.getElementById('textOutput').innerHTML = '';
+      splitOutput.innerHTML = '';
+
+      sentences.forEach((sentence, index) => {
+        const div = document.createElement('div');
+        div.className = 'sentence';
+        div.innerHTML = `<strong>Part ${index + 1}:</strong> ${highlight(sentence)} <button onclick="readText('${sentence.replace(/'/g, "\'")}')">🔊</button>`;
+        splitOutput.appendChild(div);
+      });
+    }
+
+    function readText(text) {
+      const rate = parseFloat(rateSlider.value);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en';
+      utterance.rate = rate;
+      speechSynthesis.speak(utterance);
+    }
+
+    function highlight(text) {
+      return text.split(' ').map(word => {
+        if (/\b(run|write|walk|study|remember|read)\b/i.test(word)) return `<span class='verb'>${word}</span>`;
+        if (/\b(book|idea|brain|memory|exercise|lesson)\b/i.test(word)) return `<span class='noun'>${word}</span>`;
+        if (/\b(great|useful|smart|difficult|fast|slow)\b/i.test(word)) return `<span class='adjective'>${word}</span>`;
+        return word;
+      }).join(' ');
+    }
+  </script>
+</body>
+</html>
